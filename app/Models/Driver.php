@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Auth;
 
 class Driver extends Model
 {
@@ -18,7 +20,12 @@ class Driver extends Model
         'details_html',
         'image_path',
     ];
-        public function setImagePathAttribute($value): void
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+    public function setImagePathAttribute($value): void
     {
         if ($value === null || $value === '') {
             $this->attributes['image_path'] = null;
@@ -42,5 +49,29 @@ class Driver extends Model
         }
         return asset('storage/' . $path);
     }
-}
 
+    protected static function booted()
+    {
+        // При создании автоматически привязываем текущего пользователя
+        static::creating(function (Driver $driver) {
+            if (Auth::check() && $driver->user_id === null) {
+                $driver->user_id = Auth::id();
+            }
+        });
+
+        // Дополнительная защита от удаления чужих карточек
+        static::deleting(function (Driver $driver) {
+            if (!Auth::check()) {
+                return false;
+            }
+
+            $user = Auth::user();
+            if (!$user->is_admin && $driver->user_id !== $user->id) {
+                // Можно бросить исключение, но для лабы хватит просто запрета
+                return false;
+            }
+        });
+
+    
+    }
+}

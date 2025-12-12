@@ -68,6 +68,7 @@ body {
   font-family: "Roboto", sans-serif;
   font-weight: 400;
   font-size: 16px;
+  height: 100%;
   h1, h2 {
     font-family: "Montserrat", sans-serif;
     font-weight: 700;   
@@ -80,6 +81,16 @@ body {
     display: inline-block;
     color: $color-primary;
   }
+}
+
+.wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.content {
+    flex: 1;
 }
 
 .nav-topper{
@@ -102,6 +113,7 @@ body {
 
 .gd{
     .cd{
+        min-height: 450px;
         @include card-surface();
         cursor: pointer;
         .on_top{ 
@@ -135,7 +147,15 @@ body {
         .title-link:hover,.card .title-link:focus {
         text-decoration: none;
         }
-    } 
+        .card-manage-icon {
+        @include sized(65px);
+        margin: 0 auto 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        filter: brightness(0) invert(1);
+        }
+      }
 }
 
 .bottom{
@@ -147,7 +167,7 @@ body {
     }
     .icon{
         margin-left: 15px;
-        @include sized(30px, 3s0px);
+        @include sized(30px, 30px);
     }
     .icons{
         display: flex;  

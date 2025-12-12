@@ -55,7 +55,30 @@
         </div>
 
         <div class="bottom d-flex align-items-center justify-content-between">
-            <p class="align-self-center">Мальцев Даниил</p>
+
+            @auth
+                <div class="align-self-center d-flex align-items-center gap-2">
+                    <span>{{ Auth::user()->name }}</span>
+
+                    <span class="mx-1">|</span>
+
+                    <form method="POST" action="{{ route('logout') }}" style="display:inline;">
+                        @csrf
+                        <button type="submit" class="btn-logout p-0" style="background:none;border:none;color:#fff;cursor:pointer;">
+                            Выйти
+                        </button>
+                    </form>
+                </div>
+            @else
+                <div class="align-self-center">
+                    Гость |
+                    <a href="{{ route('login') }}">Войти</a>
+                    /
+                    <a href="{{ route('register') }}">Регистрация</a>
+                </div>
+            @endauth
+
+
             <div class="icons align-self-center">
                 <a href="https://vk.com/offfol" class="icon d-block">
                     <img src="{{ asset('storage/images/vk.svg') }}" alt="vk" class="img-fluid"/>

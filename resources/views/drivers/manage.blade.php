@@ -2,7 +2,7 @@
 <html lang="ru">
     <head>
         <meta charset="UTF-8">
-        <title>Управление карточками — F1 сезон 2021</title>
+        <title>lb3</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400&family=Montserrat:wght@700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="{{ mix('css/app.css') }}">
@@ -38,8 +38,13 @@
                                 @foreach($drivers as $d)
                                     <option value="{{ $d->id }}"
                                         @if(optional($selectedDriver)->id === $d->id) selected @endif>
+                                    @if(Auth::user()->is_admin)
                                         {{ $d->title }}
-                                    </option>
+                                        ({{ optional($d->user)->name ?? 'без владельца' }}@if($d->trashed()) / удалена@endif)
+                                    @else
+                                        {{ $d->title }}
+                                    @endif
+                                </option>
                                 @endforeach
                             </select>
                         </div>
@@ -54,14 +59,14 @@
                             {{ session('success') }}
                         </div>
                     @endif
-
+                
                     @php
                         $isEdit = isset($selectedDriver);
                     @endphp
 
-                    <form method="POST"action="{{ $isEdit ? route('drivers.update', $selectedDriver) : route('drivers.store') }}"novalidate>
+                    <form id="driver-form" method="POST"action="{{ $isEdit ? route('drivers.update', $selectedDriver) : route('drivers.store') }}"novalidate>
                         @csrf
-                        @if($isEdit)
+                        @if($selectedDriver)
                             @method('PUT')
                         @endif
 
@@ -131,36 +136,83 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-
-                        <div class="d-flex justify-content-between mt-4">
-                            @if($isEdit)
-                                <button type="submit" class="btn btn-primary">
-                                    Сохранить изменения
-                                </button>
-                            @else
-                                <button type="submit" class="btn btn-success">
-                                    Добавить карточку
-                                </button>
-                            @endif
-                        </div>
                     </form>
 
-                    @if($isEdit)
-                        <form method="POST" action="{{ route('drivers.destroy', $selectedDriver) }}"class="mt-3" onsubmit="return confirm('Точно удалить карточку?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger">
-                                Удалить карточку
-                            </button>
-                        </form>
-                    @endif
+                    <div class="mt-3 d-flex flex-wrap gap-2">
+                        <button type="submit"
+                                form="driver-form"
+                                class="btn btn-success">
+                            {{ $selectedDriver ? 'Сохранить изменения' : 'Добавить карточку' }}
+                        </button>
+
+                        @if($selectedDriver)
+                            @if(!$selectedDriver->trashed())
+                                @can('driver-delete', $selectedDriver)
+                                    <form action="{{ route('drivers.destroy', $selectedDriver) }}"
+                                        method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger">
+                                            Удалить (soft delete)
+                                        </button>
+                                    </form>
+                                @endcan
+                            @else
+                                @can('driver-restore', $selectedDriver)
+                                    <form action="{{ route('drivers.restore', $selectedDriver->id) }}"
+                                        method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-success">
+                                            Восстановить
+                                        </button>
+                                    </form>
+                                @endcan
+
+                                @can('driver-force-delete', $selectedDriver)
+                                    <form action="{{ route('drivers.force-delete', $selectedDriver->id) }}"
+                                        method="POST" class="d-inline"
+                                        onsubmit="return confirm('Удалить окончательно?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-outline-danger">
+                                            Удалить окончательно
+                                        </button>
+                                    </form>
+                                @endcan
+                            @endif
+                        @endif
+
+                    </div>
+
 
                 </div>
             </div>
         </div>
 
-        <div class="bottom d-flex align-items-center justify-content-between">
-            <p class="align-self-center">Мальцев Даниил</p>
+        <div class="bottom d-flex align-items-center justify-content-between py-3">
+            
+             @auth
+                <div class="align-self-center d-flex align-items-center gap-2">
+                    <span>{{ Auth::user()->name }}</span>
+
+                    <span class="mx-1">|</span>
+
+                    <form method="POST" action="{{ route('logout') }}" style="display:inline;">
+                        @csrf
+                        <button type="submit" class="btn-logout p-0" style="background:none;border:none;color:#fff;cursor:pointer;">
+                            Выйти
+                        </button>
+                    </form>
+                </div>
+            @else
+                <div class="align-self-center">
+                    Гость |
+                    <a href="{{ route('login') }}">Войти</a>
+                    /
+                    <a href="{{ route('register') }}">Регистрация</a>
+                </div>
+            @endauth
+
             <div class="icons align-self-center">
                 <a href="https://vk.com/offfol" class="icon d-block">
                     <img src="{{ asset('storage/images/vk.svg') }}" alt="vk" class="img-fluid"/>
