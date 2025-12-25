@@ -98,16 +98,28 @@
             <div class="bottom d-flex align-items-center justify-content-between px-4 py-3">
                 
                 @auth
+                    @php
+                        $userToken = Auth::user()->tokens()->first();
+                    @endphp
                     <div class="align-self-center d-flex align-items-center gap-2">
                         <span>{{ Auth::user()->name }}</span>
-
                         <span class="mx-1">|</span>
-
+                        @if($userToken)
+                            <form method="POST" action="{{ route('api.token.revoke') }}" style="display:inline;" onsubmit="return confirm('Удалить API токен?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn-logout p-0" style="background:none;border:none;color:#fff;cursor:pointer;">Токен</button>
+                            </form>
+                        @else
+                            <form method="POST" action="{{ route('api.token.create') }}" style="display:inline;">
+                                @csrf
+                                <button type="submit" class="btn-logout p-0" style="background:none;border:none;color:#fff;cursor:pointer;">Сгенерировать</button>
+                            </form>
+                        @endif
+                        <span class="mx-1">|</span>
                         <form method="POST" action="{{ route('logout') }}" style="display:inline;">
                             @csrf
-                            <button type="submit" class="btn-logout p-0" style="background:none;border:none;color:#fff;cursor:pointer;">
-                                Выйти
-                            </button>
+                            <button type="submit" class="btn-logout p-0" style="background:none;border:none;color:#fff;cursor:pointer;">Выйти</button>
                         </form>
                     </div>
                 @else
@@ -162,6 +174,24 @@
                 </div>
             </div>
         </div>
+
+    @if(session('new_token'))
+    <div class="modal fade info" id="tokenModal" tabindex="-1" data-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered dlg-szd">
+            <div class="modal-content main-block">
+                <div class="modal-header main-block">
+                    <h5 class="modal-title">Токен</h5>
+                    <button type="button" class="close x-mark" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <div class="modal-body main-block">
+                    <input type="text" class="form-control bg-dark text-light border-secondary" value="{{ session('new_token') }}" readonly onclick="this.select();">
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>document.addEventListener('DOMContentLoaded', function() { $('#tokenModal').modal('show'); });</script>
+    @endif
+
     <script src="{{ mix('js/app.js') }}"></script>
     </body>
 </html>

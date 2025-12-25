@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\FriendshipController;
 use App\Http\Controllers\FeedController;
+use App\Http\Controllers\ApiTokenController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -66,6 +67,11 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/feed', [FeedController::class, 'index'])
         ->name('feed.index');
+
+    Route::post('/api-token/create', [ApiTokenController::class, 'create'])
+        ->name('api.token.create');
+    Route::delete('/api-token/revoke', [ApiTokenController::class, 'revoke'])
+        ->name('api.token.revoke');
 
 });
 require __DIR__.'/auth.php';
