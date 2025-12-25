@@ -54,7 +54,7 @@
             </div>
         </div>
 
-        <div class="bottom d-flex align-items-center justify-content-between">
+        <div class="bottom d-flex align-items-center justify-content-between px-4">
 
             @auth
                 <div class="align-self-center d-flex align-items-center gap-2">

@@ -31,7 +31,6 @@ class AuthServiceProvider extends ServiceProvider
         return true;
     });
 
-    // редактировать / мягко удалять – владелец или админ
     Gate::define('driver-update', function (User $user, Driver $driver) {
         return $user->id === $driver->user_id || $user->is_admin;
     });
@@ -40,7 +39,6 @@ class AuthServiceProvider extends ServiceProvider
         return $user->id === $driver->user_id || $user->is_admin;
     });
 
-    // восстановить / удалить безвозвратно – только админ
     Gate::define('driver-restore', function (User $user, Driver $driver) {
         return $user->is_admin;
     });

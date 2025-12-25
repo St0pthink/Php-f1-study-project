@@ -3,6 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\FriendshipController;
+use App\Http\Controllers\FeedController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -28,7 +31,7 @@ Route::get('/', function () {
 Route::middleware('auth')->group(function () {
 
     Route::get('/dashboard', function () {
-        return redirect()->route('drivers.index');
+        return redirect()->route('users.drivers.index', Auth::user());
     })->name('dashboard');
 
     Route::get('/drivers/manage', [DriverController::class, 'manage'])
@@ -50,6 +53,19 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/users/{user}/drivers', [DriverController::class, 'userDrivers'])
         ->name('users.drivers.index');
+
+    Route::post('/drivers/{driver}/comments', [CommentController::class, 'store'])
+        ->name('comments.store');
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])
+        ->name('comments.destroy');
+
+    Route::post('/friendships/{userId}', [FriendshipController::class, 'store'])
+        ->name('friendships.store');
+    Route::delete('/friendships/{userId}', [FriendshipController::class, 'destroy'])
+        ->name('friendships.destroy');
+
+    Route::get('/feed', [FeedController::class, 'index'])
+        ->name('feed.index');
 
 });
 require __DIR__.'/auth.php';

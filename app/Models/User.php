@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use App\Models\Driver;
+use App\Models\Comment;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -45,10 +47,27 @@ class User extends Authenticatable
         'is_admin' => 'boolean',
     ];
 
-     public function drivers(): HasMany
+    public function drivers(): HasMany
     {
         return $this->hasMany(Driver::class);
     }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    public function friends(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'friendships', 'user_id', 'friend_id')
+                    ->withTimestamps();
+    }
+
+    public function isFriend(User $user): bool
+    {
+        return $this->friends()->where('friend_id', $user->id)->exists();
+    }
+
     public function getRouteKeyName()
     {
         return 'name';

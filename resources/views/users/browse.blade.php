@@ -28,25 +28,27 @@
                 </div>
             </nav>
             <h1 class="my-3">
-            Просмотр карточек пользователей
+            Пользователи
             </h1>
 
             <div class="container my-5">
-                <div class="row justify-content-center">
+                @if (session('success'))
+                    <div class="alert alert-success">{{ session('success') }}</div>
+                @endif
+                @if (session('error'))
+                    <div class="alert alert-danger">{{ session('error') }}</div>
+                @endif
+
+                {{-- Форма выбора пользователя для просмотра карточек --}}
+                <div class="row justify-content-center mb-4">
                     <div class="col-12 col-md-6 col-lg-4">
-
-                        @if (session('error'))
-                            <div class="alert alert-danger">
-                                {{ session('error') }}
-                            </div>
-                        @endif
-
-                        <form method="GET" action="{{ route('users.browse') }}">
+                        <form method="GET" action="{{ route('users.browse') }}" class="browse-form">
                             <div class="form-group mb-3">
-                                <label for="username">Выберите пользователя</label>
+                                <label for="username">Просмотр карточек</label>
                                 <select name="username" id="username" class="form-control">
                                     <option value="">...</option>
                                     <option value="all">Все карточки</option>
+                                    <option value="feed">Лента друзей</option>
                                     @foreach($users as $user)
                                         <option value="{{ $user->name }}">
                                             {{ $user->name }}
@@ -59,9 +61,62 @@
                                 Просмотр
                             </button>
                         </form>
-
                     </div>
                 </div>
+
+                {{-- Список пользователей с кнопками дружбы --}}
+                <div class="users-list">
+                    <h4 class="mb-3"><i class="fas fa-users"></i> Список пользователей</h4>
+                    
+                    @php
+                        $currentUser = auth()->user();
+                        $friendIds = $currentUser->friends()->pluck('users.id')->toArray();
+                    @endphp
+
+                    @foreach($users as $user)
+                        @if($user->id !== $currentUser->id)
+                            @php
+                                $isFriend = in_array($user->id, $friendIds);
+                            @endphp
+                            <div class="user-card">
+                                <div class="user-info">
+                                    <div class="user-avatar">
+                                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                                    </div>
+                                    <div>
+                                        <div class="user-name">
+                                            <a href="{{ route('users.drivers.index', $user) }}">{{ $user->name }}</a>
+                                            @if($isFriend)
+                                                <span class="friend-badge"><i class="fas fa-user-friends"></i> Друг</span>
+                                            @endif
+                                        </div>
+                                        <small class="text-muted">{{ $user->email }}</small>
+                                    </div>
+                                </div>
+                                <div class="user-actions">
+                                    @if($isFriend)
+                                        <form action="{{ route('friendships.destroy', $user->id) }}" method="POST" 
+                                              onsubmit="return confirm('Удалить из друзей?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn-friend btn-remove-friend">
+                                                <i class="fas fa-user-minus"></i> Удалить
+                                            </button>
+                                        </form>
+                                    @else
+                                        <form action="{{ route('friendships.store', $user->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn-friend btn-add-friend">
+                                                <i class="fas fa-user-plus"></i> Добавить
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+
             </div>
 
         </main>

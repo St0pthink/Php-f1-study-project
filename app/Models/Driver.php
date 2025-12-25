@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
 
 class Driver extends Model
@@ -25,6 +26,12 @@ class Driver extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
+
     public function setImagePathAttribute($value): void
     {
         if ($value === null || $value === '') {
@@ -52,14 +59,12 @@ class Driver extends Model
 
     protected static function booted()
     {
-        // При создании автоматически привязываем текущего пользователя
         static::creating(function (Driver $driver) {
             if (Auth::check() && $driver->user_id === null) {
                 $driver->user_id = Auth::id();
             }
         });
 
-        // Дополнительная защита от удаления чужих карточек
         static::deleting(function (Driver $driver) {
             if (!Auth::check()) {
                 return false;
@@ -67,7 +72,6 @@ class Driver extends Model
 
             $user = Auth::user();
             if (!$user->is_admin && $driver->user_id !== $user->id) {
-                // Можно бросить исключение, но для лабы хватит просто запрета
                 return false;
             }
         });

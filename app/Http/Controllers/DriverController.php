@@ -55,13 +55,20 @@ class DriverController extends Controller
 
     }
 
-    public function show(Request $request,Driver $driver):View
+    public function show(Request $request, Driver $driver): View
     {
-        if ($request->ajax()) {
-        return view('drivers.part.details', compact('driver'));
+        $driver->load(['comments.user', 'user']);
+
+        $friendIds = [];
+        if (Auth::check()) {
+            $friendIds = Auth::user()->friends()->pluck('users.id')->toArray();
         }
 
-        return view('drivers.show', compact('driver'));
+        if ($request->ajax()) {
+            return view('drivers.part.comments', compact('driver', 'friendIds'));
+        }
+
+        return view('drivers.show', compact('driver', 'friendIds'));
     }
 
     public function edit(Driver $driver)
@@ -98,13 +105,11 @@ class DriverController extends Controller
         $user = Auth::user();
 
         if ($user->is_admin) {
-            // админ видит все карточки, включая удалённые, и владельцев
             $drivers = Driver::withTrashed()
                 ->with('user')
                 ->orderBy('id')
                 ->get();
         } else {
-            // обычный пользователь — только свои НЕудалённые
             $drivers = Driver::where('user_id', $user->id)
                 ->orderBy('id')
                 ->get();
@@ -114,7 +119,6 @@ class DriverController extends Controller
         if ($request->filled('driver_id')) {
             $selectedDriver = Driver::withTrashed()->findOrFail($request->driver_id);
 
-            // подстраховка: обычный пользователь не может выбрать чужую карточку
             if (!$user->is_admin && $selectedDriver->user_id !== $user->id) {
                 abort(403);
             }

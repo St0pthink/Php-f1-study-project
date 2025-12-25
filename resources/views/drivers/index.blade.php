@@ -36,8 +36,14 @@
                 <div class="row">
 
                     @foreach ($drivers as $driver)
+                        @php
+                            $isTrashed = method_exists($driver, 'trashed') && $driver->trashed();
+                        @endphp
                         <div class="col-12 col-sm-6 col-md-6 col-lg-4 col-xl-4 col-xxl-3 col-xxxl-2 d-flex mb-5">
-                            <div class="card cd w-100 h-100" data-id="{{ $driver->id }}" data-show-url="{{ route('drivers.show', $driver) }}">
+                            <div class="card cd w-100 h-100 {{ $isTrashed ? 'card-deleted' : '' }}" 
+                                 data-id="{{ $driver->id }}" 
+                                 data-show-url="{{ route('drivers.show', $driver) }}"
+                                 data-comments-url="{{ route('drivers.show', $driver) }}">
 
                                 <div class="on_top">&nbsp;{{ $driver->track_name }}&nbsp;</div>
 

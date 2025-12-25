@@ -14,6 +14,10 @@ class UserController extends Controller
                 return redirect()->route('drivers.index');
             }
 
+            if ($request->username === 'feed') {
+                return redirect()->route('feed.index');
+            }
+
             return redirect()->route('users.drivers.index', [
                 'user' => $request->username,
             ]);
